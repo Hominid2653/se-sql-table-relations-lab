@@ -11,7 +11,7 @@ pd.read_sql("""SELECT * FROM sqlite_master""", conn)
 
 # STEP 1
 df_boston = pd.read_sql("""
-SELECT e.firstName, e.lastName, e.jobTitle
+SELECT e.firstName, e.lastName
 FROM employees AS e
 JOIN offices AS o ON e.officeCode = o.officeCode
 WHERE o.city = 'Boston'
@@ -83,17 +83,17 @@ ORDER BY numpurchasers DESC
 
 # STEP 9
 df_customers = pd.read_sql("""
-SELECT o.officeCode, o.city, COUNT(c.customerNumber) AS n_customers
-FROM offices AS o
-LEFT JOIN employees AS e ON o.officeCode = e.officeCode
-LEFT JOIN customers AS c ON e.employeeNumber = c.salesRepEmployeeNumber
+SELECT o.officeCode, o.city, COUNT(DISTINCT c.customerNumber) AS n_customers
+FROM customers AS c
+JOIN employees AS e ON c.salesRepEmployeeNumber = e.employeeNumber
+JOIN offices AS o ON e.officeCode = o.officeCode
 GROUP BY o.officeCode, o.city
-ORDER BY n_customers DESC, o.officeCode
+ORDER BY o.officeCode
 """, conn)
 
 # STEP 10
 df_under_20 = pd.read_sql("""
-SELECT e.employeeNumber, e.firstName, e.lastName, o.city, o.officeCode
+SELECT DISTINCT e.employeeNumber, e.firstName, e.lastName, o.city, o.officeCode
 FROM employees AS e
 JOIN offices AS o ON e.officeCode = o.officeCode
 JOIN customers AS c ON e.employeeNumber = c.salesRepEmployeeNumber
@@ -107,8 +107,7 @@ WHERE od.productCode IN (
     GROUP BY od2.productCode
     HAVING COUNT(DISTINCT c2.customerNumber) < 20
 )
-GROUP BY e.employeeNumber, e.firstName, e.lastName, o.city, o.officeCode
-ORDER BY e.firstName, e.lastName
+ORDER BY e.lastName, e.firstName
 """, conn)
 
 conn.close()
